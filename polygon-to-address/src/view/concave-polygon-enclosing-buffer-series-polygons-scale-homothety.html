@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Leaflet Polygon with Homothety Scaling</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@turf/turf"></script>
+    <style>
+      #map {
+        height: 600px;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      // Initialize the map
+      var map = L.map("map").setView(
+        [45.448972310056064, 9.20329798212643],
+        16
+      );
+
+      // Add a tile layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+
+      // Define the outer polygon coordinates (convex polygon)
+      var outerPolygon = turf.polygon([
+        [
+          [9.196913677779321, 45.4526805430221],
+          [9.195217524619835, 45.45229500430139],
+          [9.195283854632606, 45.451590392242565],
+          [9.198590879507861, 45.451557155607276],
+          [9.196212474797363, 45.449562921647924],
+          [9.19875196667914, 45.44898458061027],
+          [9.20222007872573, 45.449429970210105],
+          [9.202343263033896, 45.451364382736415],
+          [9.204257346366887, 45.45280019608171],
+          [9.204598472141697, 45.45329208544183],
+          [9.203309774769906, 45.45390361758311],
+          [9.202693853230357, 45.452268418974256],
+          [9.198998324001025, 45.45301955267777],
+          [9.19919731403678, 45.45446861421115],
+          [9.198429781042108, 45.454455320237656],
+          [9.198515062485768, 45.45291319807092],
+          [9.197122132238036, 45.45310596564795],
+          [9.197093705089657, 45.45220194648323],
+          [9.196913677779321, 45.4526805430221],
+        ],
+      ]);
+
+      // Function to perform homothetic scaling of the polygon
+      function homothety(polygon, scale) {
+        var centroid = turf.centroid(polygon).geometry.coordinates;
+        var coordinates = polygon.geometry.coordinates[0].map(function (coord) {
+          var dx = coord[0] - centroid[0];
+          var dy = coord[1] - centroid[1];
+          return [centroid[0] + dx * scale, centroid[1] + dy * scale];
+        });
+        return turf.polygon([coordinates]);
+      }
+
+      // Generate inner polygons with homothetic scaling
+      var innerPolygons = [];
+      var currentPolygon = outerPolygon;
+      var minArea = 200; // Minimum area to stop scaling (approximately 100 meters)
+      var scale = 0.9; // Scale factor (e.g., 90%)
+      var countPolygonScaled = 0;
+
+      while (turf.area(currentPolygon) > minArea) {
+        currentPolygon = homothety(currentPolygon, scale);
+        innerPolygons.push(currentPolygon);
+        countPolygonScaled++;
+        console.log(
+          "[" + countPolygonScaled + "]" + "ScalePolygon:: minArea",
+          turf.area(currentPolygon),
+          minArea
+        );
+      }
+
+      // Add a marker at the centroid of the outer polygon
+      var centroid = turf.centroid(outerPolygon).geometry.coordinates;
+      var marker = L.marker([centroid[1], centroid[0]]).addTo(map);
+      console.log("Centroid:", centroid[1], centroid[0]);
+
+      // Convert Turf.js polygons to Leaflet polygons and add to map
+      L.geoJSON(outerPolygon, {
+        style: function (feature) {
+          return {
+            color: "blue",
+            fillOpacity: 0.2,
+          };
+        },
+      }).addTo(map);
+
+      innerPolygons.forEach(function (polygon) {
+        L.geoJSON(polygon, {
+          style: function (feature) {
+            return {
+              color: "red",
+              fillOpacity: 0.1,
+            };
+          },
+        }).addTo(map);
+      });
+    </script>
+  </body>
+</html>

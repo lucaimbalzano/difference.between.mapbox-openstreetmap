@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Leaflet Polygon with Processed Points</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@turf/turf"></script>
+    <style>
+      #map {
+        height: 600px;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      const map = L.map("map").setView(
+        [41.882403003140496, 12.453713069523474],
+        16
+      );
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+
+      const coordinates = [
+        [
+          [12.453713069523474, 41.882403003140496],
+          [12.463153957626531, 41.88233101464374],
+          [12.46205903178901, 41.881146518291985],
+          [12.461850871410434, 41.87788431182949],
+          [12.465424706512579, 41.877952333089894],
+          [12.471190190829418, 41.8852055558194],
+          [12.474776682982366, 41.88386973245517],
+          [12.478460708110447, 41.887801313597265],
+          [12.478462348081905, 41.88906197492062],
+          [12.480056405652107, 41.88876535110754],
+          [12.4804524866652, 41.887356484735506],
+          [12.47577243697998, 41.88231356068749],
+          [12.477864898598341, 41.88016164479566],
+          [12.47268395986876, 41.878228307532964],
+          [12.473680698398795, 41.8766693429877],
+          [12.478962367590697, 41.878526959395515],
+          [12.481652399227642, 41.876895445754485],
+          [12.488723763476145, 41.88431538174149],
+          [12.49549295158343, 41.8797187088212],
+          [12.497089951306009, 41.87148438531429],
+          [12.502765963637955, 41.87133717018287],
+          [12.507320087289088, 41.87438939629982],
+          [12.508195061383645, 41.880470452141424],
+          [12.513881195183814, 41.88202313969484],
+          [12.509000972602934, 41.88691268477859],
+          [12.495344402240022, 41.9025222954275],
+          [12.472385636104633, 41.900407041771075],
+          [12.472883916227232, 41.896104166255185],
+          [12.481148177067553, 41.89825193290241],
+          [12.48184785784349, 41.89640186001276],
+          [12.476668137637745, 41.89580750058914],
+          [12.473979514418062, 41.890100302494375],
+          [12.468200850190158, 41.892993036976634],
+          [12.46591930027904, 41.88861632090183],
+          [12.461360039937091, 41.88861545558203],
+          [12.453713069523474, 41.882403003140496],
+        ],
+      ];
+      fetch(
+        "http://localhost:3000/api/get-addresses/draw-inner-polygons-perimeter",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(coordinates),
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          data = JSON.parse(data);
+          console.log("Data retrieved:", data.coordinates);
+
+          // Draw the input polygon
+          L.geoJSON(
+            {
+              type: "Polygon",
+              coordinates: coordinates,
+            },
+            {
+              style: {
+                color: "blue",
+                fillOpacity: 0.2,
+              },
+            }
+          ).addTo(map);
+
+          // Add a marker at the centroid of the outer polygon
+          var outerPolygon = turf.polygon(coordinates);
+          var centroid = turf.centroid(outerPolygon).geometry.coordinates;
+          var marker = L.marker([centroid[1], centroid[0]]).addTo(map);
+          console.log("Centroid:", centroid[1], centroid[0]);
+
+          // cycle to design the inner polygons perimeters
+          data.coordinates.innerPolygons.forEach(function (polygon) {
+            console.log("Polygon:", polygon);
+            // polygon = turf.polygon(polygon);
+            L.geoJSON(polygon, {
+              style: function (feature) {
+                return {
+                  color: "red",
+                  fillOpacity: 0.1,
+                };
+              },
+            }).addTo(map);
+          });
+
+          // cycle to design the inner polygons perimeters points geoJson
+          data.coordinates.pointsPerimeterPolygons.forEach(
+            (polygonParemeter) => {
+              polygonParemeter.forEach((point, index) => {
+                console.log("[" + index + "]Point:", point[0], point[1]);
+                L.marker([point[0], point[1]]).addTo(map);
+              });
+            }
+          );
+        })
+        .catch((error) => console.error("Error:", error));
+    </script>
+  </body>
+</html>
+<!-- 
+https://nominatim.openstreetmap.org/reverse?lat=45.4642&lon=9.1900&format=jsonv2
+https://nominatim.openstreetmap.org/reverse?lat=45.4922325&lon=9.1101254,17&format=jsonv2
+,9.1101254,17
+
+https://nominatim.openstreetmap.org/reverse?lat=45.4922325&lon=9.1101254&format=jsonv2
+{
+  "place_id": 63693693,
+  "licence": "Data OpenStreetMap contributors",
+  "osm_type": "way",
+  "osm_id": 1007603754,
+  "lat": "45.492344349999996",
+  "lon": "9.11032278367837",
+  "category": "amenity",
+  "type": "parking",
+  "place_rank": 30,
+  "importance": 0.00000999999999995449,
+  "addresstype": "amenity",
+  "name": "",
+  "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+  "address": {
+    "road": "Via Ugo Betti",
+    "quarter": "Gallaratese",
+    "suburb": "Quartiere Gallaratese",
+    "borough": "Municipio 8 di Milano",
+    "city": "Milan",
+    "county": "Milan",
+    "ISO3166-2-lvl6": "IT-MI",
+    "state": "Lombardy",
+    "ISO3166-2-lvl4": "IT-25",
+    "postcode": "20151",
+    "country": "Italy",
+    "country_code": "it"
+  },
+  "boundingbox": [
+    "45.4919874",
+    "45.4926936",
+    "9.1099500",
+    "9.1106932"
+  ]
+
+
+
+
+
+
+
+
+
+https://nominatim.openstreetmap.org/search.php?q=via+ugo+betti+32%2C+Milan&dedupe=0&format=jsonv2
+ [
+  {
+    "place_id": 96337508,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 266453062,
+    "lat": "45.4928286",
+    "lon": "9.1104243",
+    "category": "highway",
+    "type": "unclassified",
+    "place_rank": 26,
+    "importance": 0.0533433333333333,
+    "addresstype": "road",
+    "name": "Via Ugo Betti",
+    "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+    "boundingbox": [
+      "45.4928286",
+      "45.4928850",
+      "9.1102749",
+      "9.1104243"
+    ]
+  },
+  {
+    "place_id": 96088494,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 363153141,
+    "lat": "45.4963041",
+    "lon": "9.111206",
+    "category": "highway",
+    "type": "unclassified",
+    "place_rank": 26,
+    "importance": 0.0533433333333333,
+    "addresstype": "road",
+    "name": "Via Ugo Betti",
+    "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+    "boundingbox": [
+      "45.4962482",
+      "45.4963041",
+      "9.1110986",
+      "9.1112060"
+    ]
+  },
+  {
+    "place_id": 96524644,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 276086871,
+    "lat": "45.4957989",
+    "lon": "9.1098142",
+    "category": "highway",
+    "type": "unclassified",
+    "place_rank": 26,
+    "importance": 0.0533433333333333,
+    "addresstype": "road",
+    "name": "Via Ugo Betti",
+    "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+    "boundingbox": [
+      "45.4957451",
+      "45.4957989",
+      "9.1097640",
+      "9.1098142"
+    ]
+  },
+  {
+    "place_id": 96319263,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 283764608,
+    "lat": "45.4946057",
+    "lon": "9.1092141",
+    "category": "highway",
+    "type": "unclassified",
+    "place_rank": 26,
+    "importance": 0.0533433333333333,
+    "addresstype": "road",
+    "name": "Via Ugo Betti",
+    "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+    "boundingbox": [
+      "45.4946057",
+      "45.4949559",
+      "9.1092141",
+      "9.1092646"
+    ]
+  },
+  {
+    "place_id": 95950148,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 286059940,
+    "lat": "45.4931033",
+    "lon": "9.1097183",
+    "category": "highway",
+    "type": "unclassified",
+    "place_rank": 26,
+    "importance": 0.0533433333333333,
+    "addresstype": "road",
+    "name": "Via Ugo Betti",
+    "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+    "boundingbox": [
+      "45.4928850",
+      "45.4933504",
+      "9.1092424",
+      "9.1102749"
+    ]
+  },
+  {
+    "place_id": 95860167,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 1192624289,
+    "lat": "45.4945015",
+    "lon": "9.1092006",
+    "category": "highway",
+    "type": "unclassified",
+    "place_rank": 26,
+    "importance": 0.0533433333333333,
+    "addresstype": "road",
+    "name": "Via Ugo Betti",
+    "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+    "boundingbox": [
+      "45.4944323",
+      "45.4946057",
+      "9.1091916",
+      "9.1092141"
+    ]
+  },
+  {
+    "place_id": 97233295,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 306527779,
+    "lat": "45.4963185",
+    "lon": "9.1112643",
+    "category": "highway",
+    "type": "unclassified",
+    "place_rank": 26,
+    "importance": 0.0533433333333333,
+    "addresstype": "road",
+    "name": "Via Ugo Betti",
+    "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+    "boundingbox": [
+      "45.4963041",
+      "45.4963423",
+      "9.1112060",
+      "9.1113977"
+    ]
+  },
+  {
+    "place_id": 95823250,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 270454520,
+    "lat": "45.4930768",
+    "lon": "9.1150296",
+    "category": "highway",
+    "type": "unclassified",
+    "place_rank": 26,
+    "importance": 0.0533433333333333,
+    "addresstype": "road",
+    "name": "Via Ugo Betti",
+    "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+    "boundingbox": [
+      "45.4927881",
+      "45.4934822",
+      "9.1147581",
+      "9.1154090"
+    ]
+  },
+  {
+    "place_id": 96095643,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 53572982,
+    "lat": "45.4957989",
+    "lon": "9.1098142",
+    "category": "highway",
+    "type": "unclassified",
+    "place_rank": 26,
+    "importance": 0.0533433333333333,
+    "addresstype": "road",
+    "name": "Via Ugo Betti",
+    "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+    "boundingbox": [
+      "45.4957989",
+      "45.4960942",
+      "9.1098142",
+      "9.1100516"
+    ]
+  },
+  {
+    "place_id": 95858170,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 51450356,
+    "lat": "45.496168",
+    "lon": "9.1102712",
+    "category": "highway",
+    "type": "unclassified",
+    "place_rank": 26,
+    "importance": 0.0533433333333333,
+    "addresstype": "road",
+    "name": "Via Ugo Betti",
+    "display_name": "Via Ugo Betti, Gallaratese, Quartiere Gallaratese, Municipio 8 di Milano, Milan, Lombardy, 20151, Italy",
+    "boundingbox": [
+      "45.4960942",
+      "45.4961899",
+      "9.1100516",
+      "9.1103881"
+    ]
+  }
+] 
+} -->

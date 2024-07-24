@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Leaflet Polygon with Inner Ring</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@turf/turf"></script>
+    <style>
+      #map {
+        height: 600px;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      // Initialize the map
+      var map = L.map("map").setView(
+        [45.448972310056064, 9.20329798212643],
+        16
+      );
+
+      // Add a tile layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+
+      // Define the outer polygon coordinates (enclosing polygon)
+      var outerPolygon = turf.polygon([
+        [
+          [9.20329798212643, 45.448972310056064],
+          [9.202792920552334, 45.44900637953627],
+          [9.202287858978238, 45.44904044901648],
+          [9.201782797404142, 45.44907451849669],
+          [9.201277735830047, 45.449108587976895],
+          [9.201277735830047, 45.449108587976895],
+          [9.200845519675354, 45.44897060607374],
+          [9.200413303520662, 45.44883262417059],
+          [9.19998108736597, 45.44869464226744],
+          [9.199548871211277, 45.44855666036429],
+          [9.199548871211277, 45.44855666036429],
+          [9.199709131133488, 45.44790932725972],
+          [9.1998693910557, 45.447261994155156],
+          [9.1998693910557, 45.447261994155156],
+          [9.20017534181737, 45.4467407098559],
+          [9.200481292579042, 45.44621942555665],
+          [9.200481292579042, 45.44621942555665],
+          [9.20094912204982, 45.446209204195874],
+          [9.2014169515206, 45.44619898283509],
+          [9.201884780991378, 45.44618876147432],
+          [9.202352610462157, 45.44617854011354],
+          [9.202820439932935, 45.44616831875276],
+          [9.203288269403714, 45.44615809739199],
+          [9.203288269403714, 45.44615809739199],
+          [9.203735054642486, 45.44636081970059],
+          [9.204181839881258, 45.44656354200919],
+          [9.20462862512003, 45.44676626431779],
+          [9.205075410358802, 45.44696898662639],
+          [9.205075410358802, 45.44696898662639],
+          [9.204881155907074, 45.44756181112196],
+          [9.204686901455347, 45.44815463561753],
+          [9.204686901455347, 45.44815463561753],
+          [9.204223928345707, 45.448427193763706],
+          [9.203760955236069, 45.448699751909885],
+          [9.20329798212643, 45.448972310056064],
+        ],
+      ]);
+
+      // Define the inner polygon coordinates (hole)
+      var innerPolygon = [
+        [9.2025, 45.4485],
+        [9.2025, 45.4488],
+        [9.2028, 45.4488],
+        [9.2028, 45.4485],
+        [9.2025, 45.4485],
+      ];
+
+      // Add the inner polygon as a hole to the outer polygon
+      outerPolygon.geometry.coordinates.push(innerPolygon);
+
+      // Convert Turf.js polygon to Leaflet polygon and add to map
+      var leafletPolygon = L.geoJSON(outerPolygon, {
+        style: function (feature) {
+          return {
+            color: "blue",
+            fillOpacity: 0.5,
+          };
+        },
+      }).addTo(map);
+    </script>
+  </body>
+</html>

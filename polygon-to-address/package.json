@@ -1,0 +1,40 @@
+{
+  "name": "polygon-to-street-addresses",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Luca Imbalzano",
+  "license": "MIT",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev-babel": "nodemon babel-node src/index.js",
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@babel/cli": "^7.24.8",
+    "@babel/core": "^7.24.9",
+    "@babel/node": "^7.24.8",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-decorators": "^7.24.7",
+    "@babel/preset-env": "^7.24.8",
+    "@babel/preset-typescript": "^7.24.7",
+    "@turf/turf": "^7.0.0",
+    "axios": "^1.7.2",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.2.2",
+    "nodemon": "^3.1.0",
+    "pg": "^8.12.0",
+    "reflect-metadata": "^0.2.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "turf-inside": "^3.0.12",
+    "typeorm": "^0.3.20"
+  }
+}

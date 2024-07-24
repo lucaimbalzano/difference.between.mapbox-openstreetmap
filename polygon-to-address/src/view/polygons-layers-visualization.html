@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Polygon Visualization</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+      #map {
+        height: 600px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+      // Initialize the map
+      const map = L.map("map").setView([45.4268, 9.1056], 13);
+
+      // Add a tile layer to the map
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      // Original polygon GeoJSON
+      const originalPolygon = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "Polygon",
+              coordinates: [
+                [
+                  [9.093668137835152, 45.426787411562174],
+                  [9.105609383715148, 45.423225541565046],
+                  [9.158598662305252, 45.42594934472265],
+                  [9.168897986876061, 45.42930153742725],
+                  [9.151135383629793, 45.44344140892028],
+                  [9.125312439415609, 45.45736833609169],
+                  [9.093369606688952, 45.44365086186386],
+                  [9.093668137835152, 45.426787411562174],
+                ],
+              ],
+            },
+          },
+        ],
+      };
+
+      // Adjusted polygon GeoJSON
+      const adjustedPolygon = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "Polygon",
+              coordinates: [
+                [
+                  [9.09366723647509, 45.42678701093345],
+                  [9.10560845143282, 45.42322512341341],
+                  [9.158597757198303, 45.4259489503627],
+                  [9.16889705775996, 45.4293010923644],
+                  [9.151134602772558, 45.44344103051277],
+                  [9.12531175661099, 45.45736808901689],
+                  [9.093368707016967, 45.44365046067495],
+                  [9.09366723647509, 45.42678701093345],
+                ],
+              ],
+            },
+          },
+        ],
+      };
+
+      // Function to add markers at each vertex
+      function addMarkers(coordinates, color) {
+        coordinates[0].forEach((point) => {
+          L.circleMarker([point[1], point[0]], {
+            color: color,
+            radius: 3,
+          }).addTo(map);
+        });
+      }
+
+      // Function to draw lines between corresponding vertices of two polygons
+      function drawConnectingLines(coords1, coords2) {
+        for (let i = 0; i < coords1[0].length; i++) {
+          const point1 = coords1[0][i];
+          const point2 = coords2[0][i];
+          L.polyline(
+            [
+              [point1[1], point1[0]],
+              [point2[1], point2[0]],
+            ],
+            {
+              color: "purple",
+              weight: 1,
+              dashArray: "5, 5",
+            }
+          ).addTo(map);
+        }
+      }
+
+      // Add original polygon to the map with fill color
+      L.geoJSON(originalPolygon, {
+        style: {
+          color: "blue",
+          weight: 2,
+          opacity: 0.5,
+          fillColor: "blue",
+          fillOpacity: 0.1,
+        },
+      }).addTo(map);
+
+      // Add adjusted polygon to the map with fill color
+      L.geoJSON(adjustedPolygon, {
+        style: {
+          color: "red",
+          weight: 2,
+          opacity: 0.5,
+          fillColor: "red",
+          fillOpacity: 0.1,
+        },
+      }).addTo(map);
+
+      // Add markers to both polygons
+      addMarkers(originalPolygon.features[0].geometry.coordinates, "blue");
+      addMarkers(adjustedPolygon.features[0].geometry.coordinates, "red");
+
+      // Draw lines connecting corresponding vertices
+      drawConnectingLines(
+        originalPolygon.features[0].geometry.coordinates,
+        adjustedPolygon.features[0].geometry.coordinates
+      );
+    </script>
+  </body>
+</html>
