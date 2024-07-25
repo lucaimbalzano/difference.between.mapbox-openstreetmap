@@ -7,6 +7,10 @@ import {
   getAddressesByPolygonDB,
   getAddressesLiguria,
   loadComuniItaliani,
+  loadZoneItaliani,
+  migrationsComuneOverpass,
+  // migrationsComuneOverpassWhereComuneIDIsNULL,
+  migrationsComuneOverpassWhereComuneIDIsNULLWorkers,
 } from "../controller/address.controller.js";
 
 const router = express.Router();
@@ -185,5 +189,57 @@ router.post("/get-addresses-by-polygon/db", getAddressesByPolygonDB);
  *         description: Successful response
  */
 router.get("/load-comuni-italiani", loadComuniItaliani);
+
+/**
+ * @swagger
+ * /api/get-addresses/load-zone-italiani:
+ *   get:
+ *     summary: load zone italiane
+ *     description: Insert to db zone
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
+router.get("/load-zone-italiani", loadZoneItaliani);
+
+// #### MIGRATIONS ####
+
+//COMUNE
+// comune
+// ----------+ relationship comune + comune_name
+//PERIMETER
+// properties
+// {"reg_name":"Lombardia","prov_name":"Como","prov_acr":"CO","comune_name":"Argegno","old_id":"7514"}
+// ----------+ relationship reg_name + location
+//OVERPASS
+// location
+
+/**
+ * @swagger
+ * /api/get-addresses/migrations-comune-overpass:
+ *   get:
+ *     summary: migrations comune to overpass 1-N
+ *     description: migrations
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
+router.get("/migrations-comune-overpass", migrationsComuneOverpass);
+
+/**
+ * @swagger
+ * /api/get-addresses/migrations-comune-overpass-with-comune-id-null:
+ *   get:
+ *     summary: migrations comune to overpass 1-N with comuneId is null
+ *     description: migrations
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
+router.get(
+  "/migrations-comune-overpass-with-comune-id-null",
+  // migrationsComuneOverpassWhereComuneIDIsNULL
+  migrationsComuneOverpassWhereComuneIDIsNULLWorkers
+);
 
 export default router;

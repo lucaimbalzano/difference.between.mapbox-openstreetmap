@@ -6,7 +6,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import cors from "cors";
 import "reflect-metadata";
-import { AppDataSource } from "./database.typeorm.config.js";
+import { initializeDataSource } from "./database.typeorm.config.js";
 
 dotenv.config();
 
@@ -14,6 +14,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
+app.listen(3000, () => {
+  console.log("[connection] server listen on 3K");
+});
 
 const options = {
   definition: {
@@ -68,14 +71,26 @@ app.use((err, req, res, next) => {
   });
 });
 
-AppDataSource.initialize()
-  .then(() => {
-    app.listen(3000, () => {
-      console.log("[connection] server listen on 3K");
+// Funzione per chiudere il server e le connessioni al database
+async function shutdown() {
+  console.log("Shutting down server...");
+  if (server) {
+    server.close(() => {
+      console.log("Server closed");
     });
-  })
-  .catch((error) =>
-    console.log("Error during Data Source initialization:", error)
-  );
+  }
+  try {
+    const AppDataSource = await initializeDataSource();
+    await AppDataSource.destroy(); // Chiudi la connessione al database
+    console.log("Database connection closed");
+  } catch (error) {
+    console.error("Error closing database connection:", error);
+  }
+  process.exit(0);
+}
+
+// Gestione dei segnali di interruzione
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
 
 export default app;

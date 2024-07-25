@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { EntitySchema } from "typeorm";
+import { EntitySchema, ManyToOne } from "typeorm";
 
 export class Overpass {
   constructor(
@@ -11,7 +11,8 @@ export class Overpass {
     name,
     old_ref,
     surface,
-    type
+    type,
+    comuneId
   ) {
     this.location = location;
     this.geom = geom;
@@ -22,6 +23,7 @@ export class Overpass {
     this.old_ref = old_ref;
     this.surface = surface;
     this.type = type;
+    this.comuneId = comuneId;
   }
 }
 
@@ -65,6 +67,21 @@ export const OverpassEntity = new EntitySchema({
     },
     type: {
       type: "varchar",
+    },
+    comuneId: {
+      type: "int",
+      nullable: true,
+    },
+  },
+  relations: {
+    comune: {
+      type: "many-to-one",
+      target: "Comune",
+      joinColumn: {
+        name: "comuneId",
+        referencedColumnName: "id",
+      },
+      nullable: true,
     },
   },
 });

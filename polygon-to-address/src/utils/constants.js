@@ -27,6 +27,95 @@ export const refreshZone = false;
 // URL PATH COMUNI ITALIANI 25/07/2024
 export const PATH_URL_COMUNI_ITALIANI = "src/utils/txt/listacomuni.txt";
 
+// URL PATH ZONE ITALIANI 25/07/2024
+export const PATH_URL_ZONE_ITALIANI = "src/utils/json/zone.json";
+
+export const PATH_URL_WORKERS =
+  "/Users/lucaimbalzano/Documents/Workspaces/Private/difference.between.mapbox-openstreetmap/polygon-to-address/src/workers/worker.js";
+
+export const REGIONI_PREFISSI = [
+  {
+    prefisso_nome: "TOS",
+    nome_esteso: "Toscana",
+  },
+  {
+    prefisso_nome: "ABR",
+    nome_esteso: "Abruzzo",
+  },
+  {
+    prefisso_nome: "FVG",
+    nome_esteso: "Friuli Venezia Giulia",
+  },
+  {
+    prefisso_nome: "PIE",
+    nome_esteso: "Piemonte",
+  },
+  {
+    prefisso_nome: "LAZ",
+    nome_esteso: "Lazio",
+  },
+  {
+    prefisso_nome: "LIG",
+    nome_esteso: "Liguria",
+  },
+  {
+    prefisso_nome: "MAR",
+    nome_esteso: "Marche",
+  },
+  {
+    prefisso_nome: "CAM",
+    nome_esteso: "Campania",
+  },
+  {
+    prefisso_nome: "VEN",
+    nome_esteso: "Veneto",
+  },
+  {
+    prefisso_nome: "VDA",
+    nome_esteso: "Valle d'Aosta",
+  },
+  {
+    prefisso_nome: "LOM",
+    nome_esteso: "Lombardia",
+  },
+  {
+    prefisso_nome: "EMR",
+    nome_esteso: "Emilia-Romagna",
+  },
+  {
+    prefisso_nome: "UMB",
+    nome_esteso: "Umbria",
+  },
+  {
+    prefisso_nome: "MOL",
+    nome_esteso: "Molise",
+  },
+  {
+    prefisso_nome: "SIC",
+    nome_esteso: "Sicilia",
+  },
+  {
+    prefisso_nome: "TAA",
+    nome_esteso: "Trentino-Alto Adige",
+  },
+  {
+    prefisso_nome: "BAS",
+    nome_esteso: "Basilicata",
+  },
+  {
+    prefisso_nome: "SAR",
+    nome_esteso: "Sardegna",
+  },
+  {
+    prefisso_nome: "CAL",
+    nome_esteso: "Calabria",
+  },
+  {
+    prefisso_nome: "PUG",
+    nome_esteso: "Puglia",
+  },
+];
+
 export const toponimi = [
   { id: "0#TUTTI", value: "TUTTI" },
   { id: "300#ACCESSO", value: "ACCESSO" },

@@ -94,3 +94,30 @@ ORDER BY "overpass"."name" ASC, "overpass"."id" ASC;
 
 
 
+SELECT 
+  (SELECT COUNT(*) FROM "overpass-api".public.comune) AS count_comuni, 
+  (SELECT COUNT(*) FROM perimeters) AS count_perimeters;
+
+
+select * from comune c where comune = 'Venezia'
+
+select distinct type from perimeters p 
+select * from perimeters p where type = 'Regione'
+select * from perimeters p where type = 'Comune'
+select * from perimeters p where type = 'Zona'
+
+select distinct regione from comune c 
+
+SELECT
+(select count(*) from overpass o where "comuneId" is not null) as comuneid_not_null,
+(select count(*) from overpass o where "comuneId" is null) as comuneid_is_null;
+
+
+select * from overpass o where "comuneId" is null
+
+
+select distinct location from overpass o order by "location"
+select distinct regione from comune order by regione
+
+select distinct "location"  from overpass o where "comuneId" is null order by "location"
+	select count(*) from overpass o2 where "comuneId" is null and "location" = 'Calabria'

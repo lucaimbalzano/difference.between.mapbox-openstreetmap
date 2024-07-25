@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { EntitySchema } from "typeorm";
+import { EntitySchema, OneToMany } from "typeorm";
 
 export class Comune {
   constructor(
@@ -69,6 +69,14 @@ export const ComuneEntity = new EntitySchema({
     link: {
       type: "varchar",
       nullable: false,
+    },
+  },
+  relations: {
+    overpasses: {
+      type: "one-to-many",
+      target: "Overpass",
+      inverseSide: "comune",
+      nullable: true,
     },
   },
 });

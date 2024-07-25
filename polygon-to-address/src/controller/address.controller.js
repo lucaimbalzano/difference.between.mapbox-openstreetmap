@@ -1,19 +1,43 @@
 import "reflect-metadata";
-import metodo2WithMapBox, { getStreetNameFromLocation } from "../functions.js";
 import { drawInnerPolygonsPerimetersShape } from "../functions.draw-inner-polygons.js";
 import logToFile from "../utils/logger.js";
-import { convertCoordinatesFormat } from "../utils/functions.js";
-import { PATH_URL_COMUNI_ITALIANI } from "../utils/constants.js";
-import { manageToponimo } from "../functions.js";
-import { ComuneEntity } from "../entities/comune.entity.js";
-import { createComune, insertComune } from "../entities/comune.service.js";
+import {
+  PATH_URL_COMUNI_ITALIANI,
+  PATH_URL_ZONE_ITALIANI,
+  PATH_URL_WORKERS,
+} from "../utils/constants.js";
+import {
+  convertCoordinatesFormat,
+  getNomeEstesoRegione,
+  getNomeFromOverpassRegione,
+} from "../utils/functions.js";
+import metodo2WithMapBox, {
+  getStreetNameFromLocation,
+  manageToponimo,
+} from "../functions.js";
+import {
+  createComune,
+  insertComune,
+  getComuni,
+} from "../entities/comune.service.js";
+import {
+  createPerimeter,
+  insertPerimeter,
+} from "../entities/perimeters.service.js";
 import fs from "fs";
 import {
   getOverpassByLocation,
   checkAllGeomtries,
+  getAllOverpass,
+  getAllOverpassWithComuneIdNull,
+  getOverpassWithComuneIdNullQBuilder,
+  updateOverpass,
 } from "../entities/overpass.service.js";
+import { initializeDataSource } from "../database.typeorm.config.js";
+import { Worker, isMainThread } from "worker_threads";
 
 import dotenv from "dotenv";
+import { OverpassEntity } from "../entities/overpass.entity.js";
 dotenv.config();
 
 export const test = (req, res) => {
@@ -319,4 +343,126 @@ export async function loadComuniItaliani() {
     await insertComune(comuneEntities[i]);
   }
   console.log("[load comuni] Data inserted successfully");
+}
+
+export async function loadZoneItaliani() {
+  console.log("[load zone] Data started loading");
+  try {
+    const data = JSON.parse(fs.readFileSync(PATH_URL_ZONE_ITALIANI, "utf-8"));
+    for (let i = 0; i < data.length; i++) {
+      let perimeter = await createPerimeter({
+        type: data[i].type,
+        geom: data[i].geometry,
+        name: data[i].name,
+        properties: data[i].properties,
+      });
+      await insertPerimeter(perimeter);
+    }
+  } catch (error) {
+    console.error("Error occurred in loadZoneItaliani: ", error);
+  }
+  console.log("[load zone] Data inserted successfully");
+}
+
+export async function migrationsComuneOverpass() {
+  try {
+    console.log("[migrations comune overpass] Data started loading");
+    const comuneEntities = await getComuni();
+    const getAllOverpassData = await getAllOverpass();
+    for (let i = 0; i < comuneEntities.length; i++) {
+      const comune = comuneEntities[i];
+      for (let y = 0; y < getAllOverpassData.length; y++) {
+        const overpass = getAllOverpassData[y];
+        const regione = getNomeEstesoRegione(comune);
+        if (regione == overpass.location) {
+          overpass.comuneId = comune;
+          await updateOverpass(null, overpass, overpass.id);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error occurred in migrationsComuneOverpass: ", error);
+  }
+}
+
+// export async function migrationsComuneOverpassWhereComuneIDIsNULL() {
+//   try {
+//     console.log("[migrations comune overpass] Data started loading");
+//     const comuneEntities = await getComuni();
+//     const getAllOverpassData = await getAllOverpassWithComuneIdNull();
+//     let currentRegion = "";
+//     for (let y = 0; y < getAllOverpassData.length; y++) {
+//       const overpass = getAllOverpassData[y];
+//       if (overpass.comuneId) continue;
+//       if (currentRegion != overpass.location || y == 0) {
+//         currentRegion = overpass.location;
+//         console.log(overpass.location);
+//       }
+//       for (let i = 0; i < comuneEntities.length; i++) {
+//         const comune = comuneEntities[i];
+//         const regionePrefisso = getNomeFromOverpassRegione(overpass);
+
+//         if (regionePrefisso == comune.regione) {
+//           overpass.comuneId = comune;
+//           await updateOverpass(overpass, overpass.id);
+//         }
+//       }
+//     }
+//     console.log("[migrations comune overpass] Data updated");
+//   } catch (error) {
+//     console.error("Error occurred in migrationsComuneOverpass: ", error);
+//   }
+// }
+
+const numWorkers = 6;
+export async function migrationsComuneOverpassWhereComuneIDIsNULLWorkers() {
+  try {
+    console.log(
+      `[migrations comune overpass][workers::${numWorkers}] Data started loading`
+    );
+    const getAllOverpassData = await getOverpassWithComuneIdNullQBuilder();
+    const chunkSize = Math.ceil(getAllOverpassData.length / numWorkers);
+    let promises = [];
+
+    for (let i = 0; i < numWorkers; i++) {
+      console.log(`[worker::${i}] started - path: ${PATH_URL_WORKERS}`);
+      const worker = new Worker(PATH_URL_WORKERS);
+      const chunk = getAllOverpassData.slice(
+        i * chunkSize,
+        (i + 1) * chunkSize
+      );
+
+      worker.postMessage({ overpassData: chunk });
+
+      promises.push(
+        new Promise((resolve, reject) => {
+          worker.on("message", (message) => {
+            if (message === "done") resolve();
+            else reject(message);
+          });
+          worker.on("error", reject);
+        })
+      );
+
+      // Handling SIGINT for each worker - terminate worker
+      process.on("SIGINT", () => {
+        worker.terminate(() => {
+          console.log("Worker terminated");
+          process.exit(0);
+        });
+      });
+    }
+
+    await Promise.all(promises);
+    console.log("[migrations comune overpass] Data updated");
+  } catch (error) {
+    console.error(
+      "Error occurred in migrationsComuneOverpassWhereComuneIDIsNULLWorkers: ",
+      error
+    );
+  }
+}
+
+if (isMainThread) {
+  migrationsComuneOverpassWhereComuneIDIsNULLWorkers();
 }

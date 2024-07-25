@@ -1,11 +1,11 @@
 import "reflect-metadata";
-import { getDataSource } from "../database.typeorm.config.js";
+import { initializeDataSource } from "../database.typeorm.config.js";
 import { OverpassEntity } from "./overpass.entity.js";
 import { coordinatesToPolygonWKT } from "../utils/functions.js";
 
 async function getOverpassByLocation(location) {
   try {
-    const AppDataSource = await getDataSource();
+    const AppDataSource = await initializeDataSource();
     const repository = AppDataSource.getRepository(OverpassEntity);
     return await repository
       .createQueryBuilder("overpass")
@@ -17,9 +17,52 @@ async function getOverpassByLocation(location) {
   }
 }
 
-async function checkAllGeomtries(geometries) {
+export async function updateOverpass(AppDataSource, overpass, id) {
   try {
-    const AppDataSource = await getDataSource();
+    const repository = AppDataSource.getRepository(OverpassEntity);
+    return await repository.update(id, overpass);
+  } catch (error) {
+    console.error("Error occurred in updateOverpass: ", error);
+  }
+}
+
+export async function getAllOverpass() {
+  try {
+    const AppDataSource = await initializeDataSource();
+    const repository = AppDataSource.getRepository(OverpassEntity);
+    return await repository.find();
+  } catch (error) {
+    console.error("Error occurred in getAllOverpass: ", error);
+  }
+}
+
+export async function getAllOverpassWithComuneIdNull() {
+  try {
+    const AppDataSource = await initializeDataSource();
+    const repository = AppDataSource.getRepository(OverpassEntity);
+    return await repository.find({ where: { comuneId: null } });
+  } catch (error) {
+    console.error("Error occurred in getAllOverpass: ", error);
+  }
+}
+
+export async function getOverpassWithComuneIdNullQBuilder() {
+  try {
+    const AppDataSource = await initializeDataSource();
+    const repository = AppDataSource.getRepository(OverpassEntity);
+    const overpassList = await repository
+      .createQueryBuilder("overpass")
+      .where("overpass.comuneId IS NULL")
+      .getMany();
+    return overpassList;
+  } catch (error) {
+    console.error("Error occurred in getAllOverpassWithComuneIdNull: ", error);
+  }
+}
+
+export async function checkAllGeomtries(geometries) {
+  try {
+    const AppDataSource = await initializeDataSource();
 
     const polygonWKT = coordinatesToPolygonWKT(geometries[0]);
 
@@ -50,4 +93,4 @@ async function checkAllGeomtries(geometries) {
   }
 }
 
-export { getOverpassByLocation, checkAllGeomtries };
+export { getOverpassByLocation };

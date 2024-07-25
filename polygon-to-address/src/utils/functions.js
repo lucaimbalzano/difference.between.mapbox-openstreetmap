@@ -1,3 +1,5 @@
+import { REGIONI_PREFISSI } from "../utils/constants.js";
+
 export function convertCoordinatesFormat(geoJson) {
   let convertedCoordinates;
 
@@ -25,4 +27,18 @@ export function coordinatesToPolygonWKT(coordinates) {
   const polygonWKT = `POLYGON((${coordinatePairs.join(", ")}))`;
 
   return polygonWKT;
+}
+
+export function getNomeEstesoRegione(comune) {
+  const regione = REGIONI_PREFISSI.find(
+    (regione) => regione.prefisso_nome === comune.regione
+  );
+  return regione ? regione.nome_esteso : null;
+}
+
+export function getNomeFromOverpassRegione(overpass) {
+  const regione = REGIONI_PREFISSI.find(
+    (regione) => regione.nome_esteso === overpass.location
+  );
+  return regione ? regione.prefisso_nome : null;
 }
