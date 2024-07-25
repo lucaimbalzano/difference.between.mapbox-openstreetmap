@@ -24,6 +24,9 @@ export const zoneName = "";
 // RICARICA LA ZONA DI RICERCA
 export const refreshZone = false;
 
+// URL PATH COMUNI ITALIANI 25/07/2024
+export const PATH_URL_COMUNI_ITALIANI = "src/utils/txt/listacomuni.txt";
+
 export const toponimi = [
   { id: "0#TUTTI", value: "TUTTI" },
   { id: "300#ACCESSO", value: "ACCESSO" },

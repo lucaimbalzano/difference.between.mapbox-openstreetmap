@@ -3,7 +3,11 @@ import metodo2WithMapBox, { getStreetNameFromLocation } from "../functions.js";
 import { drawInnerPolygonsPerimetersShape } from "../functions.draw-inner-polygons.js";
 import logToFile from "../utils/logger.js";
 import { convertCoordinatesFormat } from "../utils/functions.js";
+import { PATH_URL_COMUNI_ITALIANI } from "../utils/constants.js";
 import { manageToponimo } from "../functions.js";
+import { ComuneEntity } from "../entities/comune.entity.js";
+import { createComune, insertComune } from "../entities/comune.service.js";
+import fs from "fs";
 import {
   getOverpassByLocation,
   checkAllGeomtries,
@@ -284,4 +288,35 @@ async function getAddressesByMapBoxEndPoint(polygons) {
   console.log("request[" + counter + "]");
   console.log("list_address.length", list_address.length);
   return list_address;
+}
+
+export async function loadComuniItaliani() {
+  console.log("[load comuni] Data started loading");
+
+  const data = fs.readFileSync(PATH_URL_COMUNI_ITALIANI, "utf-8");
+  let fileTxtSplitted = data.split("\r\n").map((rowData) => rowData.split(";"));
+
+  let comuneEntities = [];
+  for (let i = 1; i < fileTxtSplitted.length; i++) {
+    // Istat;Comune;Provincia;Regione;Prefisso;CAP;CodFisco;Abitanti;Link
+    // 028001;Abano Terme;PD;VEN;049;35031;A001;19726;http://www.comuni-italiani.it/028/001/
+    let comuneEntity = await createComune({
+      istat: fileTxtSplitted[i][0],
+      comune: fileTxtSplitted[i][1],
+      provincia: fileTxtSplitted[i][2],
+      regione: fileTxtSplitted[i][3],
+      prefisso: fileTxtSplitted[i][4],
+      cap: fileTxtSplitted[i][5],
+      codFisco: fileTxtSplitted[i][6],
+      abitanti: fileTxtSplitted[i][7],
+      link: fileTxtSplitted[i][8],
+    });
+    comuneEntities.push(comuneEntity);
+  }
+
+  for (let i = 0; i < comuneEntities.length; i++) {
+    console.log(`## inserting comune[${i}]`);
+    await insertComune(comuneEntities[i]);
+  }
+  console.log("[load comuni] Data inserted successfully");
 }

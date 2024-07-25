@@ -1,7 +1,7 @@
-import { toponimi } from "./constants.js";
+import { toponimi } from "./utils/constants.js";
 import axios from "axios";
 import logToFile from "../src/utils/logger.js";
-import { maxDistance, densityOfMarker } from "./constants.js";
+import { maxDistance, densityOfMarker } from "./utils/constants.js";
 import dotenv from "dotenv";
 dotenv.config();
 

@@ -6,6 +6,7 @@ import {
   drawInnerPolygonsPerimeters,
   getAddressesByPolygonDB,
   getAddressesLiguria,
+  loadComuniItaliani,
 } from "../controller/address.controller.js";
 
 const router = express.Router();
@@ -172,5 +173,17 @@ router.get("/Liguria", getAddressesLiguria);
  *         description: Invalid request
  */
 router.post("/get-addresses-by-polygon/db", getAddressesByPolygonDB);
+
+/**
+ * @swagger
+ * /api/get-addresses/load-comuni-italiani:
+ *   get:
+ *     summary: load comuni italiani
+ *     description: Insert to db comuni italiani based on txt file
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
+router.get("/load-comuni-italiani", loadComuniItaliani);
 
 export default router;

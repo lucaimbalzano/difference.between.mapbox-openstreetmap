@@ -17,7 +17,11 @@
 </p>
 
 ## 💠 Preview 
-![polys](https://github.com/user-attachments/assets/3bf63006-ac77-4b94-b3d2-545b59b53ab1)
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/3bf63006-ac77-4b94-b3d2-545b59b53ab1" alt="polys" />
+</div>
+
 `
 ⚠ (I don't know yet why it doesn't display all geoJson points on polygons vertex, by the way i logged them in order ti make you understand)
 `
