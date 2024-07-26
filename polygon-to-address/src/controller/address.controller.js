@@ -15,6 +15,7 @@ import metodo2WithMapBox, {
   getStreetNameFromLocation,
   manageToponimo,
 } from "../functions.js";
+import { convertAddressToCatasto } from "../../src/functions.js";
 import {
   createComune,
   insertComune,
@@ -517,6 +518,8 @@ export async function getAddressesByCodeBelfiore(req, res) {
       return Array.from(uniqueAddresses);
     }
 
+    const addressesConvertedCatasto = await convertAddressToCatasto(addresses);
+
     const end = new Date();
     const executionTime = end - start;
     res.status(200).json({
@@ -535,3 +538,19 @@ export async function getAddressesByCodeBelfiore(req, res) {
       .json({ error: "An error occurred while fetching addresses" });
   }
 }
+
+// {
+//   "requests": [
+//       {
+//           "ufficio": "MILANO Territorio-MI",
+//           "comune": "F205#MILANO#0#0",
+//           "indirizzo": "CAIROLI",
+//           "via": "Largo Cairoli",
+//           "placeId": "address.8192771062133784",
+//           "toponimo": "86#LARGO",
+//           "_id": "66a3b29e2d60a0e2a4a9f45d",
+//           "categories": []
+//       },
+//       ...
+//     ]
+// }

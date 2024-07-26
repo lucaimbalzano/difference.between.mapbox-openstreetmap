@@ -2,6 +2,10 @@ import { toponimi } from "./utils/constants.js";
 import axios from "axios";
 import logToFile from "../src/utils/logger.js";
 import { maxDistance, densityOfMarker } from "./utils/constants.js";
+import { promises as fs } from "fs";
+import path from "path";
+import { PATH_URL_INPUT_CATASTO_JSON } from "./utils/constants.js";
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -230,17 +234,13 @@ async function getStreetNameFromLocation(lat, lng, apiKey) {
 //         '&language=it'
 // );
 
-function convertAddressToCatasto(addresses) {
+async function convertAddressToCatasto(addresses) {
   try {
-    const listUffici = JSON.parse(
-      sessionStorage.getItem("ufficiAdvancedSearch")
-    );
-    const listComuni = JSON.parse(
-      sessionStorage.getItem("comuneAdvancedSearch")
-    );
-    const listSezioni = JSON.parse(
-      sessionStorage.getItem("sezioneAdvancedSearch")
-    );
+    const filePath = path.resolve(PATH_URL_INPUT_CATASTO_JSON);
+    const inputCatasto = await readJsonFile(filePath);
+    const listUffici = inputCatasto.ufficio;
+    const listComuni = inputCatasto.comuni;
+    const listSezioni = inputCatasto.sezioni;
 
     let lista_indirizzi_a_catasto = [];
     for (let index = 0; index < addresses.length; index++) {
@@ -676,6 +676,16 @@ function rayCasting(point, polygon) {
   return isIn;
 }
 
+async function readJsonFile(filePath) {
+  try {
+    const data = await fs.readFile(filePath, "utf8");
+    const json = JSON.parse(data);
+    return json;
+  } catch (error) {
+    console.error("Error reading the JSON file:", error);
+  }
+}
+
 export default metodo2WithMapBox;
 export {
   isPointInsidePolygon,
@@ -684,4 +694,5 @@ export {
   rayCasting,
   getStreetNameFromLocation,
   manageToponimo,
+  convertAddressToCatasto,
 };

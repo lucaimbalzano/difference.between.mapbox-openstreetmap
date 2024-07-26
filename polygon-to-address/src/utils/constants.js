@@ -33,6 +33,8 @@ export const PATH_URL_ZONE_ITALIANI = "src/utils/json/zone.json";
 export const PATH_URL_WORKERS =
   "/Users/lucaimbalzano/Documents/Workspaces/Private/difference.between.mapbox-openstreetmap/polygon-to-address/src/workers/worker.js";
 
+export const PATH_URL_INPUT_CATASTO_JSON = "src/utils/json/input_catasto.json";
+
 export const REGIONI_PREFISSI = [
   {
     prefisso_nome: "TOS",
