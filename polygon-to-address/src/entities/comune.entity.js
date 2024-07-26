@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { EntitySchema, OneToMany } from "typeorm";
+import { EntitySchema } from "typeorm";
 
 export class Comune {
   constructor(
@@ -72,9 +72,9 @@ export const ComuneEntity = new EntitySchema({
     },
   },
   relations: {
-    overpasses: {
+    perimeters: {
       type: "one-to-many",
-      target: "Overpass",
+      target: "Perimeters",
       inverseSide: "comune",
       nullable: true,
     },

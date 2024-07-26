@@ -40,23 +40,32 @@ export async function getAllOverpassWithComuneIdNull() {
   try {
     const AppDataSource = await initializeDataSource();
     const repository = AppDataSource.getRepository(OverpassEntity);
-    return await repository.find({ where: { comuneId: null } });
+    const overpassWithComuneNull = null;
+    // await repository.find({
+    //   where: { comuneId: null },
+    // });
+    AppDataSource.destroy();
+    return overpassWithComuneNull;
   } catch (error) {
     console.error("Error occurred in getAllOverpass: ", error);
   }
 }
 
-export async function getOverpassWithComuneIdNullQBuilder() {
+export async function getOverpassWithPerimetersIdNullQBuilder() {
   try {
     const AppDataSource = await initializeDataSource();
     const repository = AppDataSource.getRepository(OverpassEntity);
     const overpassList = await repository
       .createQueryBuilder("overpass")
-      .where("overpass.comuneId IS NULL")
+      .where("overpass.perimetersId IS NULL")
       .getMany();
+    AppDataSource.destroy();
     return overpassList;
   } catch (error) {
-    console.error("Error occurred in getAllOverpassWithComuneIdNull: ", error);
+    console.error(
+      "Error occurred in getOverpassWithPerimetersIdNullQBuilder: ",
+      error
+    );
   }
 }
 
@@ -87,6 +96,7 @@ export async function checkAllGeomtries(geometries) {
       .addOrderBy("overpass.id")
       .getRawMany();
 
+    AppDataSource.destroy();
     return intersectingLines;
   } catch (error) {
     console.error("Error occurred in getOverpassByLocation: ", error);

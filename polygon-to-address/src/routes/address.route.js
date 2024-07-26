@@ -9,9 +9,11 @@ import {
   loadComuniItaliani,
   loadZoneItaliani,
   migrationsComuneOverpass,
-  // migrationsComuneOverpassWhereComuneIDIsNULL,
-  migrationsComuneOverpassWhereComuneIDIsNULLWorkers,
+  migrationsPerimetersToOverpass,
+  migrationsComunePerimeters,
+  getAddressesByCodeBelfiore,
 } from "../controller/address.controller.js";
+import { get } from "http";
 
 const router = express.Router();
 
@@ -236,10 +238,47 @@ router.get("/migrations-comune-overpass", migrationsComuneOverpass);
  *       200:
  *         description: Successful response
  */
-router.get(
-  "/migrations-comune-overpass-with-comune-id-null",
-  // migrationsComuneOverpassWhereComuneIDIsNULL
-  migrationsComuneOverpassWhereComuneIDIsNULLWorkers
-);
+router.get("/migrations-perimeter-overpass", migrationsPerimetersToOverpass);
+
+/**
+ * @swagger
+ * /api/get-addresses/migrations-comune-perimeters:
+ *   get:
+ *     summary: migrations comune to perimeters table 1-N
+ *     description: migrations
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
+router.get("/migrations-comune-perimeters", migrationsComunePerimeters);
+
+/**
+ * @swagger
+ * /api/get-addresses/get-addresses-by-code-belfiore:
+ *   get:
+ *     summary: Get addresses by code Belfiore
+ *     description: Retrieve addresses based on a given code Belfiore.
+ *     parameters:
+ *       - in: query
+ *         name: codeBelfiore
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The code Belfiore to filter addresses by.
+ *       - in: query
+ *         name: getDoublesAddresses
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *         description: Whether to include inactive addresses.
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *       400:
+ *         description: Invalid parameter
+ *       500:
+ *         description: Server error
+ */
+router.get("/get-addresses-by-code-belfiore", getAddressesByCodeBelfiore);
 
 export default router;

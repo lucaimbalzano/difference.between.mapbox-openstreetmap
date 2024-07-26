@@ -71,7 +71,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Funzione per chiudere il server e le connessioni al database
 async function shutdown() {
   console.log("Shutting down server...");
   if (server) {
@@ -81,7 +80,7 @@ async function shutdown() {
   }
   try {
     const AppDataSource = await initializeDataSource();
-    await AppDataSource.destroy(); // Chiudi la connessione al database
+    await AppDataSource.destroy(); // Get connection and close connection database
     console.log("Database connection closed");
   } catch (error) {
     console.error("Error closing database connection:", error);

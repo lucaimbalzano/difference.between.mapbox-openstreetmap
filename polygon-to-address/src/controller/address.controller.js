@@ -19,10 +19,14 @@ import {
   createComune,
   insertComune,
   getComuni,
+  getComuneByComune,
+  getComuneByCodFisco,
 } from "../entities/comune.service.js";
 import {
   createPerimeter,
   insertPerimeter,
+  getAllPerimeters,
+  updatePerimeters,
 } from "../entities/perimeters.service.js";
 import fs from "fs";
 import {
@@ -30,7 +34,7 @@ import {
   checkAllGeomtries,
   getAllOverpass,
   getAllOverpassWithComuneIdNull,
-  getOverpassWithComuneIdNullQBuilder,
+  getOverpassWithPerimetersIdNullQBuilder,
   updateOverpass,
 } from "../entities/overpass.service.js";
 import { initializeDataSource } from "../database.typeorm.config.js";
@@ -385,84 +389,149 @@ export async function migrationsComuneOverpass() {
   }
 }
 
-// export async function migrationsComuneOverpassWhereComuneIDIsNULL() {
-//   try {
-//     console.log("[migrations comune overpass] Data started loading");
-//     const comuneEntities = await getComuni();
-//     const getAllOverpassData = await getAllOverpassWithComuneIdNull();
-//     let currentRegion = "";
-//     for (let y = 0; y < getAllOverpassData.length; y++) {
-//       const overpass = getAllOverpassData[y];
-//       if (overpass.comuneId) continue;
-//       if (currentRegion != overpass.location || y == 0) {
-//         currentRegion = overpass.location;
-//         console.log(overpass.location);
-//       }
-//       for (let i = 0; i < comuneEntities.length; i++) {
-//         const comune = comuneEntities[i];
-//         const regionePrefisso = getNomeFromOverpassRegione(overpass);
+export async function migrationsComuneOverpassWhereComuneIDIsNULL() {
+  try {
+    console.log("[migrations comune overpass] Data started loading");
+    const comuneEntities = await getComuni();
+    const getAllOverpassData = await getAllOverpassWithComuneIdNull();
+    let currentRegion = "";
+    for (let y = 0; y < getAllOverpassData.length; y++) {
+      const overpass = getAllOverpassData[y];
+      if (overpass.comuneId) continue;
+      if (currentRegion != overpass.location || y == 0) {
+        currentRegion = overpass.location;
+        console.log(overpass.location);
+      }
+      for (let i = 0; i < comuneEntities.length; i++) {
+        const comune = comuneEntities[i];
+        const regionePrefisso = getNomeFromOverpassRegione(overpass);
 
-//         if (regionePrefisso == comune.regione) {
-//           overpass.comuneId = comune;
-//           await updateOverpass(overpass, overpass.id);
-//         }
-//       }
-//     }
-//     console.log("[migrations comune overpass] Data updated");
-//   } catch (error) {
-//     console.error("Error occurred in migrationsComuneOverpass: ", error);
-//   }
-// }
+        if (regionePrefisso == comune.regione) {
+          overpass.comuneId = comune;
+          await updateOverpass(overpass, overpass.id);
+        }
+      }
+    }
+    console.log("[migrations comune overpass] Data updated");
+  } catch (error) {
+    console.error("Error occurred in migrationsComuneOverpass: ", error);
+  }
+}
 
-const numWorkers = 6;
-export async function migrationsComuneOverpassWhereComuneIDIsNULLWorkers() {
+const numWorkers = 7;
+let workers = [];
+export async function migrationsPerimetersToOverpass() {
   try {
     console.log(
       `[migrations comune overpass][workers::${numWorkers}] Data started loading`
     );
-    const getAllOverpassData = await getOverpassWithComuneIdNullQBuilder();
-    const chunkSize = Math.ceil(getAllOverpassData.length / numWorkers);
-    let promises = [];
-
-    for (let i = 0; i < numWorkers; i++) {
-      console.log(`[worker::${i}] started - path: ${PATH_URL_WORKERS}`);
-      const worker = new Worker(PATH_URL_WORKERS);
-      const chunk = getAllOverpassData.slice(
-        i * chunkSize,
-        (i + 1) * chunkSize
-      );
-
-      worker.postMessage({ overpassData: chunk });
-
-      promises.push(
-        new Promise((resolve, reject) => {
-          worker.on("message", (message) => {
-            if (message === "done") resolve();
-            else reject(message);
-          });
-          worker.on("error", reject);
-        })
-      );
-
-      // Handling SIGINT for each worker - terminate worker
-      process.on("SIGINT", () => {
-        worker.terminate(() => {
-          console.log("Worker terminated");
-          process.exit(0);
-        });
-      });
-    }
-
-    await Promise.all(promises);
+    const getAllOverpassData = await getOverpassWithPerimetersIdNullQBuilder();
+    // const geomChecked =
+    // const chunkSize = Math.ceil(getAllOverpassData.length / numWorkers);
+    // let promises = [];
+    // for (let i = 0; i < numWorkers; i++) {
+    //   const worker = new Worker(PATH_URL_WORKERS);
+    //   workers.push(worker);
+    //   console.log(`[worker::${i}] started - path: ${PATH_URL_WORKERS}`);
+    //   const chunk = getAllOverpassData.slice(
+    //     i * chunkSize,
+    //     (i + 1) * chunkSize
+    //   );
+    //   worker.postMessage({ overpassData: chunk });
+    //   promises.push(
+    //     new Promise((resolve, reject) => {
+    //       worker.on("message", (message) => {
+    //         if (message === "done") resolve();
+    //         else reject(message);
+    //       });
+    //       worker.on("error", reject);
+    //     })
+    //   );
+    // }
+    // await Promise.all(promises);
     console.log("[migrations comune overpass] Data updated");
   } catch (error) {
-    console.error(
-      "Error occurred in migrationsComuneOverpassWhereComuneIDIsNULLWorkers: ",
-      error
-    );
+    console.error("Error occurred in migrationsPerimetersToOverpass: ", error);
   }
 }
 
-if (isMainThread) {
-  migrationsComuneOverpassWhereComuneIDIsNULLWorkers();
+// if (isMainThread) {
+//   process.on("SIGINT", () => {
+//     console.log("SIGINT received. Terminating workers...");
+//     workers.forEach((worker, index) => {
+//       worker.terminate();
+//       console.log(`[worker::${index}] terminated`);
+//     });
+//     process.exit(0);
+//   });
+
+//   migrationsPerimetersToOverpass();
+// }
+
+export async function migrationsComunePerimeters() {
+  try {
+    console.log(`[migrations comune perimeters] Data started migration`);
+    const allPerimeters = await getAllPerimeters();
+    for (let i = 0; i < allPerimeters.length; i++) {
+      const perimeter = allPerimeters[i];
+      if (perimeter.type == "Comune") {
+        const comune = await getComuneByComune(perimeter.name);
+        if (comune) {
+          perimeter.comuneId = comune;
+          await updatePerimeters(perimeter, perimeter.id);
+        }
+      }
+    }
+    console.log(`[migrations comune perimeters] Data migration complete`);
+  } catch (error) {
+    console.error("Error occurred in migrationsComunePerimeters: ", error);
+  }
+}
+
+export async function getAddressesByCodeBelfiore(req, res) {
+  try {
+    const { codeBelfiore, getDoublesAddresses } = req.query;
+    if (!codeBelfiore) {
+      return res
+        .status(400)
+        .json({ error: "codeBelfiore parameter is required" });
+    }
+    const start = new Date();
+    const comuni = await getComuneByCodFisco(codeBelfiore);
+    if (!comuni) {
+      return res
+        .status(404)
+        .json({ error: `Comune belfiore ${codeBelfiore} not found` });
+    }
+    let addresses = await checkAllGeomtries(
+      comuni.perimeters[0].geom.coordinates
+    );
+
+    if (getDoublesAddresses) {
+      addresses = addresses.map((address) => address.overpass_name);
+    } else {
+      const uniqueAddresses = new Set();
+      addresses = addresses.forEach((address) =>
+        uniqueAddresses.add(address.overpass_location)
+      );
+      return Array.from(uniqueAddresses);
+    }
+
+    const end = new Date();
+    const executionTime = end - start;
+    res.status(200).json({
+      addresses_found: addresses.length,
+      addresses_list: addresses,
+      execution_time: {
+        start: start,
+        end: end,
+        time: executionTime,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching addresses" });
+  }
 }

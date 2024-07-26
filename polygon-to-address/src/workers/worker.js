@@ -12,6 +12,7 @@ parentPort.on("message", async (data) => {
     const AppDataSource = await initializeDataSource();
     for (let y = 0; y < overpassData.length; y++) {
       const overpass = overpassData[y];
+
       if (overpass.comuneId) continue;
       const regionePrefisso = getNomeFromOverpassRegione(overpass);
       const comune = await getComuneByRegione(regionePrefisso);

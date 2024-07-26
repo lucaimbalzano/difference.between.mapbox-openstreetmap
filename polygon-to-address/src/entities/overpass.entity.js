@@ -23,7 +23,6 @@ export class Overpass {
     this.old_ref = old_ref;
     this.surface = surface;
     this.type = type;
-    this.comuneId = comuneId;
   }
 }
 
@@ -68,17 +67,17 @@ export const OverpassEntity = new EntitySchema({
     type: {
       type: "varchar",
     },
-    comuneId: {
+    perimetersId: {
       type: "int",
       nullable: true,
     },
   },
   relations: {
-    comune: {
+    perimeters: {
       type: "many-to-one",
-      target: "Comune",
+      target: "Perimeters",
       joinColumn: {
-        name: "comuneId",
+        name: "perimetersId",
         referencedColumnName: "id",
       },
       nullable: true,
