@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { Readable } from "stream";
 import { drawInnerPolygonsPerimetersShape } from "../functions.draw-inner-polygons.js";
 import logToFile from "../utils/logger.js";
 import {
@@ -15,7 +16,11 @@ import metodo2WithMapBox, {
   getStreetNameFromLocation,
   manageToponimo,
 } from "../functions.js";
-import { convertAddressToCatasto } from "../../src/functions.js";
+import {
+  convertAddressToCatasto,
+  normalizeToBoolean,
+  handleMultipolygonAreaAddresses,
+} from "../../src/functions.js";
 import {
   createComune,
   insertComune,
@@ -43,6 +48,7 @@ import { Worker, isMainThread } from "worker_threads";
 
 import dotenv from "dotenv";
 import { OverpassEntity } from "../entities/overpass.entity.js";
+import { get } from "http";
 dotenv.config();
 
 export const test = (req, res) => {
@@ -489,9 +495,130 @@ export async function migrationsComunePerimeters() {
   }
 }
 
+// export async function getAddressesByCodeBelfioreFirstVersion(req, res) {
+//   try {
+//     let { codeBelfiore, getDoublesAddresses } = req.query;
+//     if (!codeBelfiore) {
+//       return res
+//         .status(400)
+//         .json({ error: "codeBelfiore parameter is required" });
+//     }
+//     const start = new Date();
+//     const comuni = await getComuneByCodFisco(codeBelfiore);
+//     if (!comuni) {
+//       return res
+//         .status(404)
+//         .json({ error: `Comune belfiore ${codeBelfiore} not found` });
+//     }
+
+//     let addresses = await handleMultipolygonAreaAddresses(
+//       comuni.perimeters[0].geom.coordinates,
+//       comuni.comune,
+//       comuni.provincia
+//     );
+
+//     getDoublesAddresses = normalizeToBoolean(getDoublesAddresses);
+
+//     if (!getDoublesAddresses) {
+//       // get only unique addresses
+//       addresses = addresses.filter(
+//         (address, index, self) =>
+//           index === self.findIndex((a) => a.route === address.route)
+//       );
+//     }
+
+//     const addressesConvertedCatasto = await convertAddressToCatasto(addresses);
+
+//     const end = new Date();
+//     const executionTime = end - start;
+//     res.status(200).json({
+//       addresses_found: addresses.length,
+//       addresses_list: addressesConvertedCatasto,
+//       execution_time: {
+//         start: start,
+//         end: end,
+//         time: executionTime,
+//       },
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res
+//       .status(500)
+//       .json({ error: "An error occurred while fetching addresses" });
+//   }
+// }
+
 export async function getAddressesByCodeBelfiore(req, res) {
   try {
-    const { codeBelfiore, getDoublesAddresses } = req.query;
+    let { codeBelfiore, getDoublesAddresses } = req.query;
+
+    if (!codeBelfiore) {
+      return res
+        .status(400)
+        .json({ error: "codeBelfiore parameter is required" });
+    }
+
+    const start = new Date();
+    const comuni = await getComuneByCodFisco(codeBelfiore);
+    if (!comuni) {
+      return res
+        .status(404)
+        .json({ error: `Comune belfiore ${codeBelfiore} not found` });
+    }
+
+    let addresses = await handleMultipolygonAreaAddresses(
+      comuni.perimeters[0].geom.coordinates,
+      comuni.comune,
+      comuni.provincia
+    );
+
+    getDoublesAddresses = normalizeToBoolean(getDoublesAddresses);
+
+    if (!getDoublesAddresses) {
+      // Get only unique addresses
+      addresses = addresses.filter(
+        (address, index, self) =>
+          index === self.findIndex((a) => a.route === address.route)
+      );
+    }
+
+    const addressesConvertedCatasto = await convertAddressToCatasto(addresses);
+
+    const sizeInBytes = Buffer.byteLength(
+      JSON.stringify(addressesConvertedCatasto),
+      "utf8"
+    );
+    const sizeInMB = sizeInBytes / 1048576;
+    console.log(`Size of JSON data: ${sizeInMB.toFixed(2)} MB`);
+
+    res.setHeader("Content-Type", "application/json");
+
+    // Prepare the response JSON
+    const responseJSON = [
+      {
+        addresses_found: addresses.length,
+        execution_time: {
+          start: start.toISOString(),
+          end: new Date().toISOString(),
+          time: new Date() - start,
+        },
+      },
+      ...addressesConvertedCatasto,
+    ];
+
+    // Send the response as a single JSON array
+    res.status(200).json(responseJSON);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: `Error occurred while fetching addresses: ${error.message}`,
+    });
+  }
+}
+
+export async function getAddressesByCodeBelfioreAndGeoms(req, res) {
+  try {
+    let { codeBelfiore, getDoublesAddresses } = req.query;
     if (!codeBelfiore) {
       return res
         .status(400)
@@ -504,31 +631,40 @@ export async function getAddressesByCodeBelfiore(req, res) {
         .status(404)
         .json({ error: `Comune belfiore ${codeBelfiore} not found` });
     }
+
+    let adr = await handleMultipolygonAreaAddresses(
+      comuni.perimeters[0].geom.coordinates
+    );
+
     let addresses = await checkAllGeomtries(
       comuni.perimeters[0].geom.coordinates
     );
 
-    if (getDoublesAddresses) {
-      addresses = addresses.map((address) => ({
-        comune: comuni.comune,
-        provincia: comuni.provincia,
-        regione: address.overpass_location,
-        placeId: address.overpass_idOsm,
-        route: address.overpass_name,
-      }));
-    } else {
-      const uniqueAddresses = new Set();
-      addresses = addresses.forEach((address) =>
-        uniqueAddresses.add(address.overpass_location)
+    addresses = addresses.map((address) => ({
+      geom_street: address.overpass_geom,
+      comune: comuni.comune,
+      provincia: comuni.provincia,
+      regione: address.overpass_location,
+      placeId: address.overpass_idOsm,
+      route: address.overpass_name,
+    }));
+    getDoublesAddresses = normalizeToBoolean(getDoublesAddresses);
+
+    if (!getDoublesAddresses) {
+      // get only unique addresses
+      addresses = addresses.filter(
+        (address, index, self) =>
+          index === self.findIndex((a) => a.route === address.route)
       );
-      return Array.from(uniqueAddresses);
     }
 
     const addressesConvertedCatasto = await convertAddressToCatasto(addresses);
-
+    let geometriesStreets = addresses.map((address) => address.geom_street);
     const end = new Date();
     const executionTime = end - start;
     res.status(200).json({
+      geometries_streets: geometriesStreets,
+      geometries: comuni.perimeters[0].geom.coordinates,
       addresses_found: addresses.length,
       addresses_list: addressesConvertedCatasto,
       execution_time: {
@@ -544,7 +680,6 @@ export async function getAddressesByCodeBelfiore(req, res) {
       .json({ error: "An error occurred while fetching addresses" });
   }
 }
-
 // {
 //   "requests": [
 //       {

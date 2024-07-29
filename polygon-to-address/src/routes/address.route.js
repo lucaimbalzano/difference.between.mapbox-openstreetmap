@@ -12,6 +12,7 @@ import {
   migrationsPerimetersToOverpass,
   migrationsComunePerimeters,
   getAddressesByCodeBelfiore,
+  getAddressesByCodeBelfioreAndGeoms,
 } from "../controller/address.controller.js";
 import { get } from "http";
 
@@ -257,6 +258,66 @@ router.get("/migrations-comune-perimeters", migrationsComunePerimeters);
  * /api/get-addresses/get-addresses-by-code-belfiore:
  *   get:
  *     summary: Get addresses by code Belfiore
+ *     description: Retrieve addresses based on a given code Belfiore. This endpoint supports streaming of large datasets in chunks.
+ *     parameters:
+ *       - in: query
+ *         name: codeBelfiore
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The code Belfiore to filter addresses by.
+ *       - in: query
+ *         name: getDoublesAddresses
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *         description: Whether to include double addresses.
+ *     responses:
+ *       200:
+ *         description: A stream of address data in chunks. The response is chunked and may include metadata about the request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 addresses_found:
+ *                   type: integer
+ *                   example: 100
+ *                 execution_time:
+ *                   type: object
+ *                   properties:
+ *                     start:
+ *                       type: string
+ *                       format: date-time
+ *                     end:
+ *                       type: string
+ *                       format: date-time
+ *                     time:
+ *                       type: integer
+ *                       example: 1234
+ *                 addresses_list:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       route:
+ *                         type: string
+ *                         example: "Main St"
+ *       400:
+ *         description: Invalid parameter
+ *       500:
+ *         description: Server error
+ */
+router.get("/get-addresses-by-code-belfiore", getAddressesByCodeBelfiore);
+
+/**
+ * @swagger
+ * /api/get-addresses/get-addresses-by-code-belfiore/geoms:
+ *   get:
+ *     summary: Get addresses by code Belfiore
  *     description: Retrieve addresses based on a given code Belfiore.
  *     parameters:
  *       - in: query
@@ -279,6 +340,9 @@ router.get("/migrations-comune-perimeters", migrationsComunePerimeters);
  *       500:
  *         description: Server error
  */
-router.get("/get-addresses-by-code-belfiore", getAddressesByCodeBelfiore);
+router.get(
+  "/get-addresses-by-code-belfiore/geoms",
+  getAddressesByCodeBelfioreAndGeoms
+);
 
 export default router;

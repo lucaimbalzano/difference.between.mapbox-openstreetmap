@@ -1,10 +1,14 @@
-import { toponimi } from "./utils/constants.js";
-import axios from "axios";
+import {
+  toponimi,
+  maxDistance,
+  densityOfMarker,
+  PATH_URL_INPUT_CATASTO_JSON,
+} from "./utils/constants.js";
 import logToFile from "../src/utils/logger.js";
-import { maxDistance, densityOfMarker } from "./utils/constants.js";
+import axios from "axios";
 import { promises as fs } from "fs";
 import path from "path";
-import { PATH_URL_INPUT_CATASTO_JSON } from "./utils/constants.js";
+import { checkAllGeomtries } from "./entities/overpass.service.js";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -233,6 +237,24 @@ async function getStreetNameFromLocation(lat, lng, apiKey) {
 //         apiKey +
 //         '&language=it'
 // );
+
+async function handleMultipolygonAreaAddresses(geometries, comune, provincia) {
+  let addresses;
+  let addresses_list = [];
+  for (let i = 0; i < geometries.length; i++) {
+    addresses = await checkAllGeomtries(geometries[i]);
+    addresses = addresses.map((address) => ({
+      geom_street: address.overpass_geom,
+      comune: comune,
+      provincia: provincia,
+      regione: address.overpass_location,
+      placeId: address.overpass_idOsm,
+      route: address.overpass_name,
+    }));
+    addresses_list = addresses_list.concat(addresses);
+  }
+  return addresses_list;
+}
 
 async function convertAddressToCatasto(addresses) {
   try {
@@ -704,6 +726,21 @@ function ignoreSS(str) {
   return regex.test(str);
 }
 
+function normalizeToBoolean(value) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  if (typeof value === "string") {
+    if (value.toLowerCase() === "true") {
+      return true;
+    }
+    if (value.toLowerCase() === "false") {
+      return false;
+    }
+  }
+  return false;
+}
+
 export default metodo2WithMapBox;
 export {
   isPointInsidePolygon,
@@ -713,4 +750,6 @@ export {
   getStreetNameFromLocation,
   manageToponimo,
   convertAddressToCatasto,
+  normalizeToBoolean,
+  handleMultipolygonAreaAddresses,
 };
