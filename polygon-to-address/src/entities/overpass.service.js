@@ -86,6 +86,7 @@ export async function checkAllGeomtries(geometries) {
         "overpass.name",
         "overpass.surface",
         "overpass.type",
+        "overpass.idOsm",
       ])
       .distinctOn(["overpass.name"])
       .where(

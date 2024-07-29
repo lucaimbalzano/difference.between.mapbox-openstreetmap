@@ -509,7 +509,13 @@ export async function getAddressesByCodeBelfiore(req, res) {
     );
 
     if (getDoublesAddresses) {
-      addresses = addresses.map((address) => address.overpass_name);
+      addresses = addresses.map((address) => ({
+        comune: comuni.comune,
+        provincia: comuni.provincia,
+        regione: address.overpass_location,
+        placeId: address.overpass_idOsm,
+        route: address.overpass_name,
+      }));
     } else {
       const uniqueAddresses = new Set();
       addresses = addresses.forEach((address) =>
@@ -524,7 +530,7 @@ export async function getAddressesByCodeBelfiore(req, res) {
     const executionTime = end - start;
     res.status(200).json({
       addresses_found: addresses.length,
-      addresses_list: addresses,
+      addresses_list: addressesConvertedCatasto,
       execution_time: {
         start: start,
         end: end,

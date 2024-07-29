@@ -238,13 +238,22 @@ async function convertAddressToCatasto(addresses) {
   try {
     const filePath = path.resolve(PATH_URL_INPUT_CATASTO_JSON);
     const inputCatasto = await readJsonFile(filePath);
-    const listUffici = inputCatasto.ufficio;
+    const listUffici = inputCatasto.uffici;
     const listComuni = inputCatasto.comuni;
     const listSezioni = inputCatasto.sezioni;
 
     let lista_indirizzi_a_catasto = [];
     for (let index = 0; index < addresses.length; index++) {
       const element = addresses[index];
+
+      // ignore only number and super strade
+      if (
+        isOnlyNumber(element.route) ||
+        ignoreSS(element.route) ||
+        element.route.includes("Strada Provinciale")
+      ) {
+        continue;
+      }
 
       // RECUPERO L'UFFICIO A CATASTO
       var objUfficio = listUffici.filter((item) =>
@@ -684,6 +693,15 @@ async function readJsonFile(filePath) {
   } catch (error) {
     console.error("Error reading the JSON file:", error);
   }
+}
+
+function isOnlyNumber(str) {
+  return !isNaN(str) && str.trim() !== "" && !isNaN(Number(str));
+}
+
+function ignoreSS(str) {
+  const regex = /^SS\d+$/;
+  return regex.test(str);
 }
 
 export default metodo2WithMapBox;
