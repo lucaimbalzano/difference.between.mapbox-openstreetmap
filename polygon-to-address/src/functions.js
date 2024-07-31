@@ -741,6 +741,14 @@ function normalizeToBoolean(value) {
   return false;
 }
 
+function flattenArray(arr) {
+  return arr.reduce(
+    (acc, val) =>
+      Array.isArray(val) ? acc.concat(flattenArray(val)) : acc.concat(val),
+    []
+  );
+}
+
 export default metodo2WithMapBox;
 export {
   isPointInsidePolygon,
@@ -752,4 +760,5 @@ export {
   convertAddressToCatasto,
   normalizeToBoolean,
   handleMultipolygonAreaAddresses,
+  flattenArray,
 };

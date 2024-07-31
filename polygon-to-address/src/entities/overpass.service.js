@@ -73,7 +73,12 @@ export async function checkAllGeomtries(geometries) {
   try {
     const AppDataSource = await initializeDataSource();
 
-    const polygonWKT = coordinatesToPolygonWKT(geometries[0]);
+    let polygonWKT;
+    if (geometries.length > 1) {
+      polygonWKT = coordinatesToPolygonWKT(geometries);
+    } else {
+      polygonWKT = coordinatesToPolygonWKT(geometries[0]);
+    }
 
     const repository = AppDataSource.getRepository(OverpassEntity);
     const intersectingLines = await repository

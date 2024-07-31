@@ -15,6 +15,7 @@ import {
 import metodo2WithMapBox, {
   getStreetNameFromLocation,
   manageToponimo,
+  flattenArray,
 } from "../functions.js";
 import {
   convertAddressToCatasto,
@@ -632,22 +633,12 @@ export async function getAddressesByCodeBelfioreAndGeoms(req, res) {
         .json({ error: `Comune belfiore ${codeBelfiore} not found` });
     }
 
-    let adr = await handleMultipolygonAreaAddresses(
-      comuni.perimeters[0].geom.coordinates
+    let addresses = await handleMultipolygonAreaAddresses(
+      comuni.perimeters[0].geom.coordinates,
+      comuni.comune,
+      comuni.provincia
     );
 
-    let addresses = await checkAllGeomtries(
-      comuni.perimeters[0].geom.coordinates
-    );
-
-    addresses = addresses.map((address) => ({
-      geom_street: address.overpass_geom,
-      comune: comuni.comune,
-      provincia: comuni.provincia,
-      regione: address.overpass_location,
-      placeId: address.overpass_idOsm,
-      route: address.overpass_name,
-    }));
     getDoublesAddresses = normalizeToBoolean(getDoublesAddresses);
 
     if (!getDoublesAddresses) {
@@ -660,11 +651,17 @@ export async function getAddressesByCodeBelfioreAndGeoms(req, res) {
 
     const addressesConvertedCatasto = await convertAddressToCatasto(addresses);
     let geometriesStreets = addresses.map((address) => address.geom_street);
+
+    if (geometriesStreets.length > 1) {
+      geometriesStreets = flattenArray(geometriesStreets);
+    }
+
+    let geometriesPerimetersPolygon = comuni.perimeters[0].geom.coordinates;
     const end = new Date();
     const executionTime = end - start;
     res.status(200).json({
       geometries_streets: geometriesStreets,
-      geometries: comuni.perimeters[0].geom.coordinates,
+      geometries: geometriesPerimetersPolygon,
       addresses_found: addresses.length,
       addresses_list: addressesConvertedCatasto,
       execution_time: {
