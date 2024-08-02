@@ -14,8 +14,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
-app.listen(3000, () => {
-  console.log("[connection] server listen on 3K");
+
+const server = app.listen(3000, () => {
+  console.log("[connection] server listening on port 3000");
 });
 
 const options = {
@@ -88,7 +89,7 @@ async function shutdown() {
   process.exit(0);
 }
 
-// Gestione dei segnali di interruzione
+// Handling shutdown signals
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 

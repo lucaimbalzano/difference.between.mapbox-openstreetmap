@@ -28,7 +28,7 @@ const PolygonAccordion = ({ currentPolygon, title }) => {
         }`}
       >
         <div className="p-4 border-1 border-gray-300 rounded-lg">
-          <pre className="text-gray-700 whitespace-pre-wrap">{jsonString}</pre>
+          <p className="text-gray-700 whitespace-p-wrap">{jsonString}</p>
         </div>
       </div>
     </div>

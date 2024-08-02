@@ -271,9 +271,9 @@ export default function DrawPolygonsPage() {
             />
           </label>
 
-          <p className="text-gray-400">
+          <div className="text-gray-400">
             <PolygonAccordion currentPolygon={currentPolygon} title={title} />
-          </p>
+          </div>
         </div>
         <div className="flex flex-wrap w-full">
           {addressesOSM && (

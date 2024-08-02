@@ -17,13 +17,13 @@ export default function Card({ mapbox, osm, indirizzi_osm_found }: any) {
   const sortedOsmAddresses = osm?.indirizzi_osm?.list_address
     ? [...osm.indirizzi_osm.list_address].sort((a: any, b: any) => {
         const routeA = a.name || ""; // Fallback to an empty string if name is undefined
-        const routeB = b.name || ""; // Fallback to an empty string if name is undefined
+        const routeB = b.name || "";
         return routeA.localeCompare(routeB);
       })
     : Array.isArray(osm)
     ? [...osm].sort((a: any, b: any) => {
         const routeA = a.via || ""; // Fallback to an empty string if via is undefined
-        const routeB = b.via || ""; // Fallback to an empty string if via is undefined
+        const routeB = b.via || "";
         return routeA.localeCompare(routeB);
       })
     : [];
