@@ -19,6 +19,7 @@
 ## 💠 Preview 
 
 <div align="center">
+<img src="https://github.com/user-attachments/assets/ad3f8f6e-4442-4c20-b6ae-7f32cc99cff3" alt="polys" />
   <img src="https://github.com/user-attachments/assets/3bf63006-ac77-4b94-b3d2-545b59b53ab1" alt="polys" />
 </div>
 
