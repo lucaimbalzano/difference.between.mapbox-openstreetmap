@@ -39,19 +39,18 @@ export default function Card({ mapbox, osm, indirizzi_osm_found }: any) {
             </span>
             <div className="flex items-center">
               <div className="items-center justify-center text-xl text-sky-500 uppercase">
-                {osm && osm?.indirizzi_osm?.list_address[0].location
-                  ? osm?.indirizzi_osm?.list_address[0].location
-                  : osm[0].ufficio}{" "}
-                - {mapbox && mapbox.indirizzi[0].comune}
+                {osm && osm.indirizzi_osm?.list_address[0]?.location
+                  ? osm.indirizzi_osm.list_address[0].location
+                  : osm
+                  ? osm != undefined && osm.length > 0
+                    ? osm[0].ufficio
+                    : ""
+                  : ""}
+                - {mapbox?.indirizzi[0]?.comune}
                 {indirizzi_osm_found ? (
                   <p>Indirizzi trovati: {indirizzi_osm_found}</p>
                 ) : (
-                  <p>
-                    {mapbox &&
-                      mapbox.indirizzi &&
-                      mapbox.indirizzi[0] &&
-                      mapbox.indirizzi[0].provincia}
-                  </p>
+                  <p>{mapbox?.indirizzi[0]?.provincia}</p>
                 )}
               </div>
             </div>
@@ -60,14 +59,13 @@ export default function Card({ mapbox, osm, indirizzi_osm_found }: any) {
             {mapbox && (
               <div className="w-full space-y-3 pt-5 text-base leading-7 text-gray-600 transition-all duration-300 group-hover:text-white/90">
                 <p className="font-mono font-bold">MapBox indirizzi</p>
-
-                {sortedMapboxAddresses.map((address: any, indexMb: number) => {
+                {sortedMapboxAddresses.map((address, indexMb) => {
                   if (address.message === undefined) {
                     counterMb++;
                     return (
                       <div key={indexMb}>
                         <p>
-                          [{counterMb}]route: {address.route}
+                          [{counterMb}] route: {address.route}
                         </p>
                       </div>
                     );
@@ -79,16 +77,13 @@ export default function Card({ mapbox, osm, indirizzi_osm_found }: any) {
             <div className="w-full space-y-3 pt-5 text-base leading-7 text-gray-600 transition-all duration-300 group-hover:text-white/90">
               <p className="font-mono font-bold">Osm indirizzi</p>
               {osm &&
-                sortedOsmAddresses.map((address: any, indexOsm: number) => {
+                sortedOsmAddresses.map((address, indexOsm) => {
                   if (address.message === undefined) {
                     counterOsm++;
                     return (
                       <div key={indexOsm}>
                         <p>
-                          [{counterOsm}]route:{" "}
-                          {address.name == undefined
-                            ? address.via
-                            : address.name}
+                          [{counterOsm}] route: {address.name ?? address.via}
                         </p>
                       </div>
                     );
