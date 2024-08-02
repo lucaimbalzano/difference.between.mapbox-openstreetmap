@@ -19,13 +19,10 @@
 ## 💠 Preview 
 
 <div align="center">
-<img src="https://github.com/user-attachments/assets/ad3f8f6e-4442-4c20-b6ae-7f32cc99cff3" alt="polys" />
-  <img src="https://github.com/user-attachments/assets/3bf63006-ac77-4b94-b3d2-545b59b53ab1" alt="polys" />
+  <img src="https://github.com/user-attachments/assets/ad3f8f6e-4442-4c20-b6ae-7f32cc99cff3" alt="polys" />
+  <img src="https://github.com/user-attachments/assets/337a4103-9427-4460-a702-65b2859e7750" alt="polys" />
 </div>
 
-`
-⚠ (I don't know yet why it doesn't display all geoJson points on polygons vertex, by the way i logged them in order ti make you understand)
-`
 ## 💠 Installation
 
 First, clone the repository:
