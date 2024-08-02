@@ -1,20 +1,23 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import Layout from "./layout";
-import { VscActivateBreakpoints } from "react-icons/vsc";
 import React from "react";
+import { useEffect, useRef, useState } from "react";
+import { VscActivateBreakpoints } from "react-icons/vsc";
 import L from "leaflet";
+import * as turf from "@turf/turf";
 import "leaflet/dist/leaflet.css";
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
+import "leaflet-iconmaterial";
 import { IoCube } from "react-icons/io5";
 import { PiPolygonDuotone } from "react-icons/pi";
-import Card from "../components/card";
-import * as turf from "@turf/turf";
-import { convertLineStringToPolygon } from "../uitls/functions";
-import "leaflet-iconmaterial";
-import Link from "next/link";
+import loadingWorld from "../../assets/world_loading3.gif";
 import { RiHomeFill } from "react-icons/ri";
+import { GrPowerReset } from "react-icons/gr";
+import Image from "next/image";
+import Link from "next/link";
+import Layout from "./layout";
+import Card from "../components/card";
+import { createTileLayers } from "../uitls/layers";
 
 export default function DrawPolygonsPage() {
   const mapRef = useRef<L.Map | null>(null);
@@ -26,9 +29,9 @@ export default function DrawPolygonsPage() {
 
   var busIcon = L.IconMaterial.icon({
     icon: "", // Name of Material icon
-    iconColor: "#aa2187", // Material icon color (could be rgba, hex, html name...)
-    markerColor: "rgba(1, 64, 187, 0.5)", // Marker fill color
-    outlineColor: "yellow", // Marker outline color
+    iconColor: "rgba(219, 204, 215, 0.8)", // Material icon color with opacity (80% opacity)
+    markerColor: "rgba(43, 42, 43, 0.8)", // Marker fill color with opacity (80% opacity)
+    outlineColor: "rgba(242, 218, 236, 0.8)", // Marker outline color with opacity (80% opacity)
     outlineWidth: 1, // Marker outline width
     iconSize: [31, 42], // Width and height of the icon
   });
@@ -36,6 +39,13 @@ export default function DrawPolygonsPage() {
   const cleanState = () => {
     console.log("Cleaning state");
     setCurrentPolygon(null);
+  };
+
+  const handleCleanMap = () => {
+    if (currentPolygon) {
+      mapRef.current?.removeLayer(currentPolygon);
+      cleanState();
+    }
   };
 
   const handleGetAddresses = async () => {
@@ -152,8 +162,17 @@ export default function DrawPolygonsPage() {
       dataRetrieved.coordinates.pointsPerimeterPolygons.forEach(
         (polygonPerimeter: any) => {
           polygonPerimeter.forEach((point: any, index: number) => {
+            let pointLng = point[0];
+            let pointLat = point[1];
+            const lng = parseFloat(pointLng);
+            const lat = parseFloat(pointLat);
+            if (lng > lat) {
+              pointLng = lat;
+              pointLat = lng;
+            }
+
             console.log("[" + index + "]Point:", point[0], point[1]);
-            L.marker([point[1], point[0]], { icon: busIcon }, { opacity: 0.5 })
+            L.marker([pointLat, pointLng], { icon: busIcon }, { opacity: 0.5 })
               .addTo(mapRef.current)
               .bindPopup("Marker number: " + index);
           });
@@ -170,10 +189,49 @@ export default function DrawPolygonsPage() {
         [45.45410069422155, 9.20329798212643],
         16
       );
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-      }).addTo(mapRef.current);
+      const {
+        osm,
+        osmHOT,
+        Stadia_AlidadeSmoothDark,
+        Stadia_AlidadeSmooth,
+        Stadia_AlidadeSatellite,
+        Stadia_StamenToner,
+        Stadia_StamenWatercolor,
+        Stadia_StamenTerrainBackground,
+        OpenCycleMap,
+        Transport,
+        Landscape,
+        Outdoors,
+        TransportDark,
+        SpinalMap,
+        Pioneer,
+        MobileAtlas,
+        Neighbourhood,
+        Atlas,
+      } = createTileLayers();
+      Transport.addTo(mapRef.current);
+      L.control
+        .layers({
+          "Open StreetMap Default": osm,
+          "Open StreetMap HOT": osmHOT,
+          "Stadia Alidade SmoothDark": Stadia_AlidadeSmoothDark,
+          "Stadia Alida Smooth": Stadia_AlidadeSmooth,
+          "Stadia Alida Satellite": Stadia_AlidadeSatellite,
+          Stadia_StamenToner,
+          Stadia_StamenWatercolor,
+          Stadia_StamenTerrainBackground,
+          "Open cycle map": OpenCycleMap,
+          Transport,
+          Landscape,
+          Outdoors,
+          TransportDark,
+          SpinalMap,
+          Pioneer,
+          MobileAtlas,
+          Neighbourhood,
+          Atlas,
+        })
+        .addTo(mapRef.current);
 
       // Enable Geoman controls
       mapRef.current.pm.addControls({
@@ -223,13 +281,22 @@ export default function DrawPolygonsPage() {
           >
             <div id="map" className="w-full h-full rounded-lg"></div>
             <div className="space-y-4 mb-2">
-              <button
-                className="mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded shadow-md hover:bg-white hover:text-blue-500 hover:shadow-lg hover:scale-105 hover:outline hover:outline-blue-500 transition duration-300 flex justify-center space-x-2 items-center"
-                onClick={handleGetAddresses}
-              >
-                <IoCube />
-                <p>Address</p>
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  className="mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded shadow-md hover:bg-white hover:text-blue-500 hover:shadow-lg hover:scale-105 hover:outline hover:outline-blue-500 transition duration-300 flex justify-center space-x-2 items-center"
+                  onClick={handleGetAddresses}
+                >
+                  <IoCube />
+                  <p>Address</p>
+                </button>
+                <button
+                  className="mt-4 p-2 bg-white text-blue-500 font-semibold shadow-md hover:bg-blue-500 hover:text-white hover:shadow-lg hover:scale-105 hover:outline hover:outline-blue-500 transition duration-300 flex justify-center space-x-2 items-center rounded-xl"
+                  onClick={handleCleanMap}
+                >
+                  <GrPowerReset />
+                </button>
+              </div>
+
               <div className="flex justify-start items-center space-x-2">
                 <PiPolygonDuotone className="text-xl" />
                 <p>Current Polygon:</p>
@@ -242,9 +309,16 @@ export default function DrawPolygonsPage() {
             </div>
             <div className="flex flex-wrap w-full">
               {loadingAddressesInfo && (
-                <p className="text-gray-400">
-                  Loading addresses informations...
-                </p>
+                <div className="text-gray-400 text-base m-3 flex items-center animate-pulse">
+                  <Image
+                    src={loadingWorld}
+                    alt="Loading world"
+                    width={50}
+                    height={50}
+                    className="mr-3"
+                  />
+                  <p className="ml-3">Loading addresses informations...</p>
+                </div>
               )}
               {addressesMapBox && addressesOSM && (
                 <Card mapbox={addressesMapBox} osm={addressesOSM} />
