@@ -28,6 +28,11 @@ export default function Home() {
               codice belfiore get address
             </p>
           </Link>
+          <Link href="/getIndirizziByCodeBelfioreWithLayers">
+            <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30 hover:scale-105 hover:bg-zinc-900 hover:text-gray-200">
+              codice belfiore get addresses layers
+            </p>
+          </Link>
         </div>
       </div>
     </main>
